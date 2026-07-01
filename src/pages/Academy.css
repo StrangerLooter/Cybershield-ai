@@ -1,0 +1,263 @@
+.academy-header { padding: 80px 0 60px; }
+.academy-body { padding-bottom: 80px; max-width: 860px; margin: 0 auto; }
+
+/* Intro */
+.academy-intro {}
+.academy-intro__stats {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.academy-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.academy-intro__card { margin-bottom: 24px; }
+
+.academy-badges-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.academy-badge-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.academy-rules {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.academy-rules li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.academy-rules li svg { color: var(--safe); flex-shrink: 0; }
+
+/* Leaderboard */
+.academy-leaderboard {}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  text-align: left;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-table td {
+  padding: 12px 12px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-table tr:last-child td { border-bottom: none; }
+.leaderboard-row--gold td { color: var(--text-primary); }
+.leaderboard-rank { font-size: 1.1rem; }
+
+/* Quiz */
+.quiz-container { max-width: 700px; margin: 0 auto; }
+
+.quiz-top { margin-bottom: 24px; }
+
+.quiz-progress-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-blue));
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px var(--accent-primary-glow);
+}
+
+.quiz-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Quiz Card */
+.quiz-card { transition: border-color 0.3s ease; }
+.quiz-card--correct { border-color: var(--safe-glow); background: linear-gradient(135deg, var(--bg-card), rgba(0,255,136,0.03)); }
+.quiz-card--wrong   { border-color: var(--danger-glow); background: linear-gradient(135deg, var(--bg-card), rgba(255,51,51,0.03)); }
+
+.quiz-message { margin: 0 0 24px; }
+
+.quiz-message__bubble {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.quiz-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quiz-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition-base);
+}
+
+.quiz-btn--safe {
+  background: var(--safe-dim);
+  color: var(--safe);
+  border: 2px solid var(--safe-glow);
+}
+
+.quiz-btn--safe:hover {
+  background: rgba(0,255,136,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--safe-glow);
+}
+
+/* Verdict */
+.quiz-verdict {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  animation: fadeInUp 0.4s ease;
+}
+
+.quiz-verdict--correct {
+  background: var(--safe-dim);
+  border-color: var(--safe-glow);
+  color: var(--safe);
+}
+
+.quiz-verdict--wrong {
+  background: var(--danger-dim);
+  border-color: var(--danger-glow);
+  color: var(--danger);
+}
+
+.quiz-verdict__icon { flex-shrink: 0; margin-top: 4px; }
+.quiz-verdict > div:nth-child(2) { color: var(--text-secondary); }
+.quiz-verdict strong { color: var(--text-primary); }
+
+.quiz-verdict__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-dim);
+  border: 1px solid var(--warning-glow);
+  color: var(--text-secondary);
+  font-size: 0.83rem;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.quiz-verdict__tip svg { flex-shrink: 0; margin-top: 1px; color: var(--warning); }
+
+/* Result */
+.quiz-result__hero { text-align: center; padding: 48px; }
+
+.quiz-result__trophy { font-size: 4rem; margin-bottom: 16px; }
+
+.quiz-result__scores {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin: 28px 0;
+  flex-wrap: wrap;
+}
+
+.quiz-result__big-score {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.quiz-result__badges { margin: 24px 0; }
+.quiz-result__badges-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.result-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--accent-primary-dim);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 12px var(--accent-primary-dim);
+}
+
+.result-badge__icon { font-size: 1.3rem; }
+.result-badge__name { font-weight: 700; color: var(--accent-primary); font-size: 0.88rem; }
+
+.quiz-result__save {
+  display: flex;
+  gap: 10px;
+  max-width: 480px;
+  margin: 24px auto 0;
+}
+
+@media (max-width: 600px) {
+  .quiz-buttons { grid-template-columns: 1fr; }
+  .quiz-result__scores { gap: 24px; }
+  .quiz-result__save { flex-direction: column; }
+}
