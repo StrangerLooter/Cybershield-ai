@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.hard-shadow { box-shadow: 4px 4px 0px 0px #1A1A1A; }
+.hard-shadow-lg { box-shadow: 8px 8px 0px 0px #1A1A1A; }
+.btn-hover:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #1A1A1A; transition: all 0.2s ease; }
+.corner-accent::before { content: ''; position: absolute; top: -2px; left: -2px; width: 6px; height: 6px; background: #1A1A1A; }
+.corner-accent::after { content: ''; position: absolute; bottom: -2px; right: -2px; width: 6px; height: 6px; background: #1A1A1A; }
+.marquee-ticker { animation: scroll 40s linear infinite; }
+@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.border-charcoal { border: 2px solid #1A1A1A; }
+.divider { border-bottom: 1px solid #1A1A1A; }

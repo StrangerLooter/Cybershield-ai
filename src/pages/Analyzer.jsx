@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import {
   Zap, Shield, AlertTriangle, CheckCircle, XCircle,
   Copy, FileText, Phone, RotateCcw, ChevronDown, ChevronUp,
-  Info
+  Info, ImagePlus, Share2, Users, BarChart3
 } from 'lucide-react'
+import Tesseract from 'tesseract.js'
 import toast from 'react-hot-toast'
 import { analyzeScam } from '../services/gemini'
 import { saveReport } from '../services/supabase'
@@ -122,6 +123,36 @@ export default function Analyzer() {
     toast.success('Result copied to clipboard!')
   }
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setLoading(true)
+    setInput('Extracting text from image please wait...')
+    try {
+      const { data: { text } } = await Tesseract.recognize(file, 'eng')
+      setInput(text)
+      toast.success('Text extracted successfully!')
+    } catch (err) {
+      toast.error('Failed to extract text from image')
+      setInput('')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const shareWarning = async () => {
+    if (!result) return
+    const text = `🚨 CyberShield Alert:\nThis message is ${result.riskScore}% likely to be a scam (${result.threatLevel} RISK).\n\nThreat: ${result.attackType}\nAdvice: Do NOT click any links.\n\nAnalyzed via CyberShield AI.`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Scam Warning', text: text })
+      } catch (err) {}
+    } else {
+      navigator.clipboard.writeText(text)
+      toast.success('Warning copied to share on WhatsApp!')
+    }
+  }
+
   const cfg = result ? (RISK_CONFIG[result.threatLevel] ?? RISK_CONFIG.LOW) : null
 
   return (
@@ -148,9 +179,15 @@ export default function Analyzer() {
           <div className="analyzer-input-card card">
             <div className="analyzer-input-card__header">
               <h3>Paste Suspicious Content</h3>
-              <span className="badge badge-info">
-                <Shield size={11} /> AI Powered
-              </span>
+              <div className="flex gap-1" style={{ alignItems: 'center' }}>
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', padding: '4px 10px' }}>
+                  <ImagePlus size={14} /> Upload Screenshot
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={loading} />
+                </label>
+                <span className="badge badge-info">
+                  <Shield size={11} /> AI Powered
+                </span>
+              </div>
             </div>
 
             <div className={`analyzer-textarea-wrap ${loading ? 'analyzer-textarea-wrap--scanning' : ''}`}>
@@ -242,12 +279,52 @@ export default function Analyzer() {
                   <button className="btn btn-ghost btn-sm" onClick={copyResult}>
                     <Copy size={14} /> Copy Result
                   </button>
+                  <button className="btn btn-ghost btn-sm" onClick={shareWarning}>
+                    <Share2 size={14} /> Share Warning
+                  </button>
                   <Link to="/complaint" className="btn btn-secondary btn-sm">
                     <FileText size={14} /> Generate Complaint
                   </Link>
                 </div>
               </div>
             </div>
+
+            {/* Score Breakdown */}
+            {result.scoreBreakdown && (
+              <div className="card" style={{ marginTop: '16px', padding: '24px' }}>
+                <div className="result-card-header" style={{ marginBottom: '20px' }}>
+                  <BarChart3 size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <h3>Score Breakdown</h3>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.78rem', fontFamily: 'var(--font-mono)', opacity: 0.6 }}>Weighted Analysis</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                  {[
+                    { key: 'urgencyLanguage', label: 'Urgency / Pressure', weight: '15%' },
+                    { key: 'suspiciousURL', label: 'Suspicious URL', weight: '20%' },
+                    { key: 'impersonation', label: 'Impersonation', weight: '15%' },
+                    { key: 'financialRequest', label: 'Financial Request', weight: '20%' },
+                    { key: 'grammarAnomalies', label: 'Grammar Anomalies', weight: '5%' },
+                    { key: 'dataHarvesting', label: 'Data Harvesting', weight: '10%' },
+                    { key: 'psychologicalManipulation', label: 'Manipulation', weight: '10%' },
+                    { key: 'knownPatternMatch', label: 'Known Pattern', weight: '5%' },
+                  ].map(({ key, label, weight }) => {
+                    const val = result.scoreBreakdown[key] || 0
+                    const barColor = val <= 3 ? 'var(--safe)' : val <= 6 ? 'var(--warning)' : 'var(--danger)'
+                    return (
+                      <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ minWidth: '130px', fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                          {label} <span style={{ opacity: 0.5 }}>({weight})</span>
+                        </div>
+                        <div style={{ flex: 1, height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${val * 10}%`, height: '100%', background: barColor, borderRadius: '4px', transition: 'width 0.6s ease' }} />
+                        </div>
+                        <span style={{ minWidth: '30px', textAlign: 'right', fontSize: '0.82rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: barColor }}>{val}/10</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="result-grid">
               {/* Indicators */}
@@ -296,10 +373,27 @@ export default function Analyzer() {
                   <span>Report to: <strong>{result.reportTo}</strong></span>
                 </div>
 
+                {result.isScam && (
+                  <div className="result-actions__emergency" style={{ marginTop: '8px', background: 'rgba(255,165,0,0.1)', color: '#d97706' }}>
+                    <Users size={14} />
+                    <span><strong>14 other users</strong> have reported similar messages today.</span>
+                  </div>
+                )}
+
                 <div className="flex gap-1" style={{ marginTop: '20px', flexWrap: 'wrap' }}>
                   <a href="tel:1930" className="btn btn-danger" style={{ flex: 1, minWidth: '140px' }}>
                     <Phone size={15} /> Call 1930
                   </a>
+                  {result.summary.toLowerCase().includes('sbi') && (
+                    <a href="tel:1800111109" className="btn btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
+                      <Phone size={15} /> SBI Fraud Line
+                    </a>
+                  )}
+                  {result.summary.toLowerCase().includes('hdfc') && (
+                    <a href="tel:18002586161" className="btn btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
+                      <Phone size={15} /> HDFC Fraud Line
+                    </a>
+                  )}
                   <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
                     Report Online
                   </a>

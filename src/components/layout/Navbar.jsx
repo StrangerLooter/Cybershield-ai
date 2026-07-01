@@ -39,8 +39,9 @@ export default function Navbar() {
   }, [open])
 
   return (
-    <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`} ref={navRef}>
-      <nav className="container navbar__inner">
+    <>
+      <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`} ref={navRef}>
+        <nav className="container navbar__inner">
         {/* Logo */}
         <Link to="/" className="navbar__logo">
           <div className="navbar__logo-icon">
@@ -110,5 +111,6 @@ export default function Navbar() {
         </ul>
       </div>
     </header>
+    </>
   )
 }

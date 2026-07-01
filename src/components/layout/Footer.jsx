@@ -1,100 +1,67 @@
 import { Link } from 'react-router-dom'
-import { Shield, Mail, Phone, ExternalLink } from 'lucide-react'
 import './Footer.css'
 
-const FEATURE_LINKS = [
+const PRODUCT_LINKS = [
   { path: '/analyzer',  label: 'Scam Analyzer' },
   { path: '/scanner',   label: 'QR Scanner' },
-  { path: '/complaint', label: 'Complaint Generator' },
   { path: '/academy',   label: 'Cyber Academy' },
-  { path: '/dashboard', label: 'Dashboard' },
+  { path: '/docs',      label: 'API Documentation' },
 ]
 
 const RESOURCE_LINKS = [
-  { href: 'https://cybercrime.gov.in', label: 'Cybercrime.gov.in', external: true },
-  { href: 'https://www.cert-in.org.in', label: 'CERT-In', external: true },
-  { href: 'https://www.meity.gov.in', label: 'MeitY', external: true },
-  { href: 'tel:1930', label: 'Helpline: 1930', external: false },
+  { path: '/privacy',  label: 'Privacy Policy' },
+  { path: '/terms',    label: 'Terms of Service' },
+  { path: '/audit',    label: 'Security Audit' },
+  { path: '/support',  label: 'Contact Support' },
 ]
 
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer__grid">
-          {/* Brand */}
-          <div className="footer__brand">
-            <Link to="/" className="footer__logo">
-              <div className="footer__logo-icon">
-                <Shield size={18} />
-              </div>
-              <span>CyberShield <span className="footer__logo-ai">AI</span></span>
+    <footer className="sn-footer">
+      <div className="sn-footer__inner">
+        <div className="sn-footer__grid">
+          {/* Brand Column */}
+          <div className="sn-footer__brand">
+            <Link to="/" className="sn-footer__logo">
+              <span className="material-symbols-outlined sn-footer__shield" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+              <span className="sn-footer__logo-text">CYBERSHIELD AI</span>
             </Link>
-            <p className="footer__tagline">
-              Prevent. Detect. Report. Protect.
+            <p className="sn-footer__desc">
+              Building the next generation of sovereign digital defense for 1.4 billion citizens. Powered by advanced AI and human vigilance.
             </p>
-            <p className="footer__desc">
-              India's AI-powered cyber fraud prevention platform, built to protect citizens and assist law enforcement.
-            </p>
-            <div className="footer__emergency">
-              <Phone size={14} />
-              <span>Cyber Crime Helpline:</span>
-              <a href="tel:1930" className="footer__emergency-number">1930</a>
-            </div>
           </div>
 
-          {/* Features */}
-          <div className="footer__col">
-            <h4 className="footer__col-title">Features</h4>
-            <ul className="footer__links">
-              {FEATURE_LINKS.map(({ path, label }) => (
+          {/* Product Column */}
+          <div className="sn-footer__col">
+            <h5 className="sn-footer__col-title">Product</h5>
+            <ul className="sn-footer__links">
+              {PRODUCT_LINKS.map(({ path, label }) => (
                 <li key={path}>
-                  <Link to={path} className="footer__link">{label}</Link>
+                  <Link to={path} className="sn-footer__link">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Resources */}
-          <div className="footer__col">
-            <h4 className="footer__col-title">Resources</h4>
-            <ul className="footer__links">
-              {RESOURCE_LINKS.map(({ href, label, external }) => (
-                <li key={href}>
-                  <a
-                    href={href}
-                    className="footer__link"
-                    target={external ? '_blank' : undefined}
-                    rel={external ? 'noopener noreferrer' : undefined}
-                  >
-                    {label}
-                    {external && <ExternalLink size={11} />}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Coming Soon */}
-          <div className="footer__col">
-            <h4 className="footer__col-title">Coming Soon</h4>
-            <ul className="footer__links">
-              {['Voice Assistant', 'AI Call Analyzer', 'Browser Extension', 'Fraud Heatmap', "Women's Safety Mode"].map(item => (
-                <li key={item}>
-                  <span className="footer__link footer__link--soon">{item}</span>
+          {/* Resources Column */}
+          <div className="sn-footer__col">
+            <h5 className="sn-footer__col-title">Resources</h5>
+            <ul className="sn-footer__links">
+              {RESOURCE_LINKS.map(({ path, label }) => (
+                <li key={path}>
+                  <Link to={path} className="sn-footer__link">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="footer__bottom">
-          <p className="footer__copy">
-            © {new Date().getFullYear()} CyberShield AI. Built for a safer digital India.
-          </p>
-          <div className="footer__badges">
-            <span className="badge badge-info">🛡️ Hackathon Project</span>
-            <span className="badge badge-info">🤖 Powered by Groq AI</span>
+        <div className="sn-footer__bottom">
+          <div className="sn-footer__copy">© {new Date().getFullYear()} CYBERSHIELD AI. SECURE_PROTOCOL_V2.0</div>
+          <div className="sn-footer__meta">
+            <span>Latency: 312ms</span>
+            <span>Region: AS-SOUTH-1</span>
+            <span>Tier: Sentinel Elite</span>
           </div>
         </div>
       </div>

@@ -57,12 +57,46 @@ export async function analyzeScam(input) {
   const prompt = `You are an expert cybercrime analyst working for India's Cyber Crime Coordination Centre (I4C).
 Analyze the following message, URL, or content for signs of cyber fraud.
 
+## SCORING RUBRIC — Calculate riskScore precisely using these weighted factors:
+
+| # | Factor                          | Weight | Score 0-10 Criteria                                                        |
+|---|----------------------------------|--------|----------------------------------------------------------------------------|
+| 1 | Urgency / Pressure Language      | 15%    | 0=none, 3=mild ("soon"), 7=strong ("immediately"), 10=extreme ("account will be blocked in 24hrs") |
+| 2 | Suspicious URL / Domain          | 20%    | 0=legitimate known domain, 3=unknown but plausible, 7=look-alike domain, 10=IP address or random string or newly registered |
+| 3 | Impersonation / Brand Spoofing   | 15%    | 0=no brand mentioned, 3=casual mention, 7=claims to be a specific bank/govt, 10=uses official logos/format to impersonate |
+| 4 | Financial / Credential Request   | 20%    | 0=no request, 3=asks for feedback, 7=asks for OTP/password, 10=asks for money transfer or full card details |
+| 5 | Grammar / Spelling Anomalies     | 5%     | 0=perfect, 5=minor errors, 10=major errors typical of mass-produced scams |
+| 6 | Data Harvesting Indicators       | 10%    | 0=no data collection, 5=asks for personal info, 10=asks for Aadhaar/PAN/bank account |
+| 7 | Psychological Manipulation       | 10%    | 0=none, 3=mild appeal, 7=fear/greed/romance baiting, 10=threatens legal action or promises unrealistic rewards |
+| 8 | Known Scam Pattern Match         | 5%     | 0=no match, 5=partial match, 10=exact match to known scam templates (KYC fraud, lottery, sextortion, etc.) |
+
+**riskScore = Round(Σ (factorScore × weight × 10))**
+
+Example: If Factor1=8, Factor2=9, Factor3=7, Factor4=10, Factor5=6, Factor6=8, Factor7=9, Factor8=10
+Score = (8×0.15 + 9×0.20 + 7×0.15 + 10×0.20 + 6×0.05 + 8×0.10 + 9×0.10 + 10×0.05) × 10 = 87
+
+## THREAT LEVEL from riskScore:
+- 0-25: LOW (legitimate or harmless)
+- 26-50: MEDIUM (suspicious but unclear)
+- 51-75: HIGH (likely a scam)
+- 76-100: CRITICAL (confirmed scam patterns)
+
 Return ONLY a valid JSON object with exactly this structure (no extra text):
 {
-  "riskScore": <integer 0-100>,
+  "riskScore": <integer 0-100 calculated from rubric above>,
   "threatLevel": "<one of: LOW | MEDIUM | HIGH | CRITICAL>",
   "attackType": "<e.g. Phishing, Vishing, OTP Fraud, UPI Scam, Investment Scam, Romance Scam, Identity Theft, Malware>",
   "summary": "<2-3 sentences explaining why this is or isn't a scam in plain English>",
+  "scoreBreakdown": {
+    "urgencyLanguage": <0-10>,
+    "suspiciousURL": <0-10>,
+    "impersonation": <0-10>,
+    "financialRequest": <0-10>,
+    "grammarAnomalies": <0-10>,
+    "dataHarvesting": <0-10>,
+    "psychologicalManipulation": <0-10>,
+    "knownPatternMatch": <0-10>
+  },
   "indicators": [
     { "flag": "<short flag name>", "description": "<why this is suspicious>" }
   ],
@@ -72,6 +106,7 @@ Return ONLY a valid JSON object with exactly this structure (no extra text):
 }
 
 Keep indicators to 4-6 items. Be concise and accurate for an Indian context.
+Calculate the score PRECISELY from the rubric — do NOT round to nearest 10.
 
 Content to analyze:
 """

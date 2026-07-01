@@ -1,535 +1,442 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Shield, Zap, QrCode, FileText, GraduationCap, LayoutDashboard,
-  ArrowRight, CheckCircle, AlertTriangle, Lock, Mic, Globe,
-  Map, Users, Smartphone, ChevronRight, TrendingUp, Eye, Phone
-} from 'lucide-react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useEffect } from 'react'
 import './Home.css'
 
-gsap.registerPlugin(ScrollTrigger)
-
-/* ─── Static data ─── */
-const STATS = [
-  { value: '11.28L', label: 'Complaints (2023)', icon: Shield },
-  { value: '₹7,488Cr', label: 'Reported Cyber Loss', icon: AlertTriangle },
-  { value: '47%',     label: 'Financial Frauds',  icon: TrendingUp },
-  { value: '1930',    label: 'National Helpline', icon: Phone },
-]
-
-const MVP_FEATURES = [
-  {
-    icon: Zap,
-    title: 'AI Scam Analyzer',
-    desc: 'Paste any suspicious SMS, WhatsApp, or email. Our AI delivers a detailed risk score and threat analysis in under 5 seconds.',
-    color: 'cyan',
-    path: '/analyzer',
-    tag: 'LIVE',
-  },
-  {
-    icon: QrCode,
-    title: 'QR & URL Scanner',
-    desc: 'Upload a QR code image or paste any link. Instantly detect phishing domains, shortened URLs, and malicious patterns.',
-    color: 'blue',
-    path: '/scanner',
-    tag: 'LIVE',
-  },
-  {
-    icon: FileText,
-    title: 'Complaint Generator',
-    desc: 'One click to generate a police-ready complaint report with incident timeline, evidence summary, and reference number. Export as PDF.',
-    color: 'purple',
-    path: '/complaint',
-    tag: 'LIVE',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Cyber Academy',
-    desc: 'Interactive scam-spotting quiz with XP points, badges, and leaderboard. Learn to identify fraud before it reaches you.',
-    color: 'green',
-    path: '/academy',
-    tag: 'LIVE',
-  },
-]
-
-const COMING_SOON = [
-  { icon: Mic,        title: 'Voice Assistant',     desc: 'Speak your incident aloud — AI transcribes and analyzes in real time.' },
-  { icon: Phone,      title: 'AI Call Analyzer',    desc: 'Detect vishing patterns during live phone calls.' },
-  { icon: Globe,      title: 'Browser Extension',   desc: 'Auto-flag suspicious pages while you browse.' },
-  { icon: Map,        title: 'Fraud Heatmap',       desc: 'City-wise scam intelligence map for law enforcement.' },
-  { icon: Users,      title: "Women's Safety Mode", desc: 'Specialized detection for romance scam & digital harassment.' },
-  { icon: Smartphone, title: 'Fake App Detector',   desc: 'Identify counterfeit banking apps before you install.' },
-]
-
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Paste Your Message',
-    desc: 'Copy any suspicious SMS, WhatsApp message, email, or URL into CyberShield AI.',
-  },
-  {
-    step: '02',
-    title: 'AI Analyzes Instantly',
-    desc: 'Our Groq-powered Llama 3 engine checks for 40+ fraud indicators and assigns a risk score in seconds.',
-  },
-  {
-    step: '03',
-    title: 'Report & Stay Safe',
-    desc: 'Get clear action steps, generate a complaint report, and report to 1930 — all in one place.',
-  },
-]
-
-const TESTIMONIALS = [
-  {
-    name: 'Sub-Inspector R. Sharma',
-    role: 'Cyber Crime Cell, Delhi Police',
-    text: 'CyberShield AI dramatically reduces the time to triage incoming cybercrime complaints. The AI-generated reports are directly usable for FIR documentation.',
-  },
-  {
-    name: 'Priya Mehta',
-    role: 'Banking Professional, Mumbai',
-    text: 'I received a "KYC update" message from what seemed like my bank. CyberShield flagged it as 94% risk immediately. It literally saved my account.',
-  },
-  {
-    name: 'Dr. A. Kumar',
-    role: 'Cyber Law Professor, NLSIU',
-    text: 'The awareness quiz feature is exceptional for educating students. It makes digital safety learning engaging and measurable.',
-  },
-]
-
-/* ─── Particle background ─── */
-function ParticleField() {
-  const canvasRef = useRef(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    let animId
-    const particles = []
-    const count = 80
-
-    const resize = () => {
-      canvas.width  = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x:  Math.random() * canvas.width,
-        y:  Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        r:  Math.random() * 1.5 + 0.5,
-        a:  Math.random() * 0.5 + 0.1,
-      })
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      particles.forEach((p, i) => {
-        p.x += p.vx
-        p.y += p.vy
-        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1
-
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255, 90, 31, ${p.a})`
-        ctx.fill()
-
-        // Connect close particles
-        for (let j = i + 1; j < particles.length; j++) {
-          const q   = particles[j]
-          const dx  = p.x - q.x
-          const dy  = p.y - q.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 100) {
-            ctx.beginPath()
-            ctx.moveTo(p.x, p.y)
-            ctx.lineTo(q.x, q.y)
-            ctx.strokeStyle = `rgba(255, 90, 31, ${0.08 * (1 - dist / 100)})`
-            ctx.lineWidth = 0.5
-            ctx.stroke()
-          }
-        }
-      })
-      animId = requestAnimationFrame(draw)
-    }
-    draw()
-
-    return () => {
-      cancelAnimationFrame(animId)
-      window.removeEventListener('resize', resize)
-    }
-  }, [])
-
-  return <canvas ref={canvasRef} className="hero__particles" />
-}
-
-/* ─── Animated Counter ─── */
-function AnimatedCounter({ target, duration = 1800 }) {
-  const [display, setDisplay] = useState('0')
-  const ref = useRef(null)
-  const observerRef = useRef(null)
-
-  useEffect(() => {
-    const el = ref.current
-    observerRef.current = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return
-      observerRef.current.disconnect()
-
-      const isNumeric = /^[\d,]+$/.test(target.replace(/[^0-9]/g, ''))
-      if (!isNumeric) { setDisplay(target); return }
-
-      const numStr  = target.replace(/[^0-9]/g, '')
-      const numEnd  = parseInt(numStr, 10)
-      const prefix  = target.match(/^[^0-9]*/)?.[0] ?? ''
-      const suffix  = target.match(/[^0-9]*$/)?.[0] ?? ''
-
-      const start = performance.now()
-      const tick = (now) => {
-        const progress = Math.min((now - start) / duration, 1)
-        const eased    = 1 - Math.pow(1 - progress, 3)
-        const current  = Math.round(eased * numEnd)
-        setDisplay(`${prefix}${current.toLocaleString('en-IN')}${suffix}`)
-        if (progress < 1) requestAnimationFrame(tick)
-      }
-      requestAnimationFrame(tick)
-    }, { threshold: 0.2 })
-
-    if (el) observerRef.current.observe(el)
-    return () => observerRef.current?.disconnect()
-  }, [target, duration])
-
-  return <span ref={ref}>{display}</span>
-}
-
-
-
-/* ─── Main Component ─── */
 export default function Home() {
-  const containerRef = useRef(null)
-
   useEffect(() => {
-    // Basic GSAP context for cleanup
-    let ctx = gsap.context(() => {
-      // 1. Reveal sections on scroll
-      gsap.utils.toArray('.section').forEach(section => {
-        gsap.fromTo(section, 
-          { opacity: 0, y: 40 },
-          { 
-            opacity: 1, y: 0, 
-            duration: 0.8, 
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top 85%',
-            }
-          }
-        )
-      })
-
-      // 2. Stagger feature cards
-      gsap.fromTo('.feature-card',
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1, y: 0,
-          stagger: 0.15,
-          duration: 0.7,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: '.features-grid',
-            start: 'top 80%',
-          }
-        }
-      )
-
-      // 3. Stagger step cards (How it works)
-      gsap.fromTo('.hiw-step',
-        { opacity: 0, x: -20 },
-        {
-          opacity: 1, x: 0,
-          stagger: 0.2,
-          duration: 0.6,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: '.hiw-grid',
-            start: 'top 80%',
-          }
-        }
-      )
-    }, containerRef)
-
-    return () => ctx.revert()
+    // Micro-interaction for hard shadows on hover
+    document.querySelectorAll('.btn-hover').forEach(button => {
+      button.addEventListener('mousedown', () => {
+        button.style.transform = 'translate(2px, 2px)';
+        button.style.boxShadow = '2px 2px 0px 0px #1A1A1A';
+      });
+      button.addEventListener('mouseup', () => {
+        button.style.transform = 'translate(-2px, -2px)';
+        button.style.boxShadow = '6px 6px 0px 0px #1A1A1A';
+      });
+    });
   }, [])
 
   return (
-    <div className="home" ref={containerRef}>
-      {/* ── Hero ── */}
-      <section className="hero">
-        <ParticleField />
-        <div className="hero__glow-orb hero__glow-orb--1" />
-        <div className="hero__glow-orb hero__glow-orb--2" />
-
-        <div className="container hero__content">
-          <div className="hero__badge animate-fade-up">
-            <span className="hero__badge-dot" />
-            AI-Powered Cyber Fraud Prevention
-          </div>
-
-          <h1 className="hero__title animate-fade-up delay-1">
-            Your Personal
-            <span className="gradient-text"> Cyber Safety</span>
-            <br />Assistant
-          </h1>
-
-          <p className="hero__subtitle animate-fade-up delay-2">
-            Every day, thousands of people receive suspicious messages. Most don't know
-            whether they're real or fraud. <strong>CyberShield AI</strong> detects scams,
-            explains the risk, and helps you report cybercrime — in seconds.
-          </p>
-
-          <div className="hero__ctas animate-fade-up delay-3">
-            <Link to="/analyzer" className="btn btn-primary btn-lg">
-              <Zap size={18} />
-              Analyze a Message
-            </Link>
-            <Link to="/about" className="btn btn-secondary btn-lg">
-              Learn More
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="hero__trust animate-fade-up delay-4">
-            <CheckCircle size={14} className="hero__trust-icon" />
-            <span>Trusted by Cyber Crime Cells</span>
-            <span className="hero__trust-sep">•</span>
-            <CheckCircle size={14} className="hero__trust-icon" />
-            <span>40+ Fraud Indicators</span>
-            <span className="hero__trust-sep">•</span>
-            <CheckCircle size={14} className="hero__trust-icon" />
-            <span>1930 Integration</span>
-          </div>
+    <div className="home-page bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen">
+      {/* Marquee Ticker */}
+      <div className="bg-charcoal text-bone h-10 flex items-center overflow-hidden z-[100] relative">
+        <div className="marquee-ticker flex whitespace-nowrap gap-12 font-label-caps text-label-caps uppercase tracking-widest items-center">
+          <span>ENCRYPTION: AES-256-GCM ACTIVE</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>SYSTEM STATUS: OPTIMAL</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>THREAT LEVEL: LOW</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>1930 HELPLINE INTEGRATED</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>PROTOCOL: V4.0.2 SECURE</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          {/* Duplicated for seamless loop */}
+          <span>ENCRYPTION: AES-256-GCM ACTIVE</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>SYSTEM STATUS: OPTIMAL</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>THREAT LEVEL: LOW</span>
+          <span className="w-2 h-2 bg-primary rounded-full"></span>
+          <span>1930 HELPLINE INTEGRATED</span>
         </div>
-
-        {/* Floating Demo Card */}
-        <div className="container">
-          <div className="hero__demo animate-fade-up delay-5">
-            <div className="hero__demo-header">
-              <div className="hero__demo-dots">
-                <span /><span /><span />
-              </div>
-              <span className="hero__demo-title">Live Analysis Preview</span>
-            </div>
-            <div className="hero__demo-body">
-              <div className="hero__demo-input">
-                <p className="hero__demo-msg">
-                  "Your SBI account will be blocked. Verify your KYC immediately at: sbi-update-kyc.xyz/secure-login"
-                </p>
-              </div>
-              <div className="hero__demo-result">
-                <div className="hero__demo-score">
-                  <div className="hero__demo-score-ring">
-                    <svg viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,51,51,0.15)" strokeWidth="6" />
-                      <circle cx="40" cy="40" r="34" fill="none" stroke="#FF3333"
-                        strokeWidth="6" strokeLinecap="round"
-                        strokeDasharray="213.6" strokeDashoffset="13"
-                        transform="rotate(-90 40 40)"
-                        style={{ filter: 'drop-shadow(0 0 8px #FF3333)' }}
-                      />
-                    </svg>
-                    <span>96%</span>
-                  </div>
-                  <div>
-                    <div className="badge badge-critical">⚠ CRITICAL RISK</div>
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px' }}>Phishing Attack Detected</p>
-                  </div>
-                </div>
-                <ul className="hero__demo-flags">
-                  {['Fake domain (sbi-update-kyc.xyz)', 'Creates urgency / fear', 'Requests sensitive login', 'Suspicious TLD (.xyz)'].map(f => (
-                    <li key={f}>
-                      <AlertTriangle size={12} style={{ color: 'var(--danger)', flexShrink: 0 }} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div className="hero__demo-actions">
-                  <button className="btn btn-danger btn-sm">Report to 1930</button>
-                  <button className="btn btn-ghost btn-sm">Generate Complaint</button>
-                </div>
-              </div>
-            </div>
-          </div>
+      </div>
+      
+      {/* Top Navigation */}
+      <header className="fixed top-10 w-full z-50 bg-background divider h-20 flex items-center px-margin-page justify-between">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+          <span className="font-headline-lg-mobile text-headline-lg-mobile tracking-tighter text-primary">CYBERSHIELD AI</span>
         </div>
-      </section>
-
-      {/* ── Stats ── */}
-      <section className="section stats-section">
-        <div className="container">
-          <div className="grid-4">
-            {STATS.map(({ value, label, icon: Icon }) => (
-              <div key={label} className="stat-card glass-card">
-                <div className="stat-card__icon">
-                  <Icon size={22} />
-                </div>
-                <div className="stat-card__value">
-                  <AnimatedCounter target={value} />
-                </div>
-                <div className="stat-card__label">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── MVP Features ── */}
-      <section className="section features-section">
-        <div className="container">
-          <div className="text-center" style={{ marginBottom: '60px' }}>
-            <div className="section-label">
-              <Shield size={14} />
-              Core Features
+        <nav className="hidden md:flex gap-8 font-label-caps text-label-caps uppercase text-charcoal">
+          <Link className="text-primary font-bold" to="/">Home</Link>
+          <Link className="hover:text-primary transition-colors" to="/analyzer">Scam Analyzer</Link>
+          <Link className="hover:text-primary transition-colors" to="/scanner">QR Scanner</Link>
+          <Link className="hover:text-primary transition-colors" to="/dashboard">Dashboard</Link>
+          <Link className="hover:text-primary transition-colors" to="/academy">Cyber Academy</Link>
+        </nav>
+        <Link className="bg-primary text-bone px-6 py-3 border-charcoal hard-shadow btn-hover font-button-text uppercase flex items-center gap-2" to="/analyzer">
+          <span className="material-symbols-outlined text-sm">bolt</span>
+          ANALYZE NOW
+        </Link>
+      </header>
+      
+      <main className="mt-32">
+        {/* Hero Section */}
+        <section className="grid grid-cols-1 md:grid-cols-12 px-margin-page gap-gutter items-center min-h-[819px] divider pb-16">
+          <div className="md:col-span-7 flex flex-col items-start gap-stack-md">
+            <div className="bg-charcoal text-bone px-4 py-1 font-label-caps text-xs uppercase inline-block border-charcoal">
+              ESTABLISHED 2024 / SECURE LAYER
             </div>
-            <h2>Everything You Need to Stay Safe Online</h2>
-            <p style={{ maxWidth: '560px', margin: '16px auto 0' }}>
-              Four AI-powered tools built specifically for Indian citizens and law enforcement to prevent, detect, and respond to cyber fraud.
+            <h1 className="font-headline-xl text-headline-xl text-charcoal max-w-2xl">
+              Your Personal <br />
+              <span className="text-primary italic underline decoration-2 underline-offset-8">Cyber Safety</span> <br />
+              Assistant
+            </h1>
+            <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+              Every day, thousands of people receive suspicious messages. CyberShield AI detects scams, explains the risk, and helps you report cybercrime — in seconds.
             </p>
-          </div>
-
-          <div className="grid-2 features-grid">
-            {MVP_FEATURES.map(({ icon: Icon, title, desc, color, path, tag }) => (
-              <Link to={path} key={title} className={`feature-card feature-card--${color}`}>
-                <div className="feature-card__tag">{tag}</div>
-                <div className={`feature-card__icon feature-card__icon--${color}`}>
-                  <Icon size={26} />
-                </div>
-                <h3 className="feature-card__title">{title}</h3>
-                <p className="feature-card__desc">{desc}</p>
-                <div className="feature-card__cta">
-                  Try Now <ChevronRight size={14} />
-                </div>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Link className="bg-primary text-bone px-8 py-4 border-charcoal hard-shadow btn-hover font-button-text uppercase flex items-center gap-2 text-lg" to="/analyzer">
+                <span className="material-symbols-outlined">bolt</span>
+                ANALYZE A MESSAGE
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section className="section hiw-section">
-        <div className="container">
-          <div className="text-center" style={{ marginBottom: '60px' }}>
-            <div className="section-label">
-              <Zap size={14} />
-              How It Works
+              <button className="bg-bone text-charcoal px-8 py-4 border-charcoal hard-shadow btn-hover font-button-text uppercase flex items-center gap-2 text-lg">
+                LEARN MORE <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
             </div>
-            <h2>From Suspicion to Safety in 3 Steps</h2>
-          </div>
-
-          <div className="hiw-grid">
-            {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
-              <div key={step} className="hiw-step">
-                <div className="hiw-step__number">{step}</div>
-                <div className="hiw-step__connector" style={{ display: i < 2 ? 'block' : 'none' }} />
-                <h3 className="hiw-step__title">{title}</h3>
-                <p className="hiw-step__desc">{desc}</p>
+            <div className="flex flex-wrap gap-8 mt-8">
+              <div className="flex items-center gap-2 font-label-caps text-xs uppercase text-on-surface-variant">
+                <span className="material-symbols-outlined text-primary text-sm">verified_user</span>
+                Trusted by Cyber Cells
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Coming Soon ── */}
-      <section className="section coming-soon-section">
-        <div className="container">
-          <div className="text-center" style={{ marginBottom: '60px' }}>
-            <div className="section-label">
-              <Lock size={14} />
-              Product Roadmap
-            </div>
-            <h2>What's Coming Next</h2>
-            <p style={{ maxWidth: '500px', margin: '16px auto 0' }}>
-              CyberShield AI is growing. Here's what our team is building for the next version.
-            </p>
-          </div>
-
-          <div className="grid-3">
-            {COMING_SOON.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="coming-card">
-                <div className="coming-card__lock">
-                  <Lock size={12} />
-                </div>
-                <div className="coming-card__icon">
-                  <Icon size={22} />
-                </div>
-                <h4 className="coming-card__title">{title}</h4>
-                <p className="coming-card__desc">{desc}</p>
-                <span className="badge badge-info" style={{ marginTop: '16px' }}>Coming Soon</span>
+              <div className="flex items-center gap-2 font-label-caps text-xs uppercase text-on-surface-variant">
+                <span className="material-symbols-outlined text-primary text-sm">radar</span>
+                40+ Fraud Indicators
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="section testimonials-section">
-        <div className="container">
-          <div className="text-center" style={{ marginBottom: '60px' }}>
-            <div className="section-label">
-              <Users size={14} />
-              Testimonials
+              <div className="flex items-center gap-2 font-label-caps text-xs uppercase text-on-surface-variant">
+                <span className="material-symbols-outlined text-primary text-sm">call</span>
+                1930 Integration
+              </div>
             </div>
-            <h2>Trusted by Citizens & Law Enforcement</h2>
           </div>
-          <div className="grid-3">
-            {TESTIMONIALS.map(({ name, role, text }) => (
-              <div key={name} className="testimonial-card glass-card">
-                <div className="testimonial-card__quote">"</div>
-                <p className="testimonial-card__text">{text}</p>
-                <div className="testimonial-card__author">
-                  <div className="testimonial-card__avatar">
-                    {name.charAt(0)}
+          <div className="md:col-span-5 relative flex justify-center py-12 md:py-0">
+            <div className="w-full aspect-square max-w-md relative">
+              <div className="absolute inset-0 border-charcoal bg-surface-container rotate-3"></div>
+              <div className="absolute inset-0 border-charcoal bg-white -rotate-2"></div>
+              <div className="absolute inset-0 border-charcoal bg-charcoal flex items-center justify-center overflow-hidden">
+                <img className="object-cover w-full h-full opacity-90" data-alt="A highly detailed 3D render of a futuristic cyber-sentinel droid standing in a minimalist white-lit studio. The droid is matte black with subtle glowing orange conduits, embodying the 'Sentinelle Noir' aesthetic. The atmosphere is technical, high-contrast, and editorial, with sharp shadows and architectural framing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByk5gw5q2xX13oss9yBwPTqHZYj1hGSiJraO8_87EeiTKUzw-BuRJxMYFHOmvv-VlnqVu4axwNkzICit9qszvzkzk6yyYEm_shyDBrAU5C9VnpWlgc3ssDfzuI4UuHXqcUvNHOzIv0h7cRExlqusIHP_PpDk4xW-ZvcbOF4NYundajbfRaSKgBSawswfmCfgo1Tk0iC7g55ACqCXq09A2j3H6fSJDAWvykLDFXfzm23PhsHA4HhV4z61NEKjgMPU3iKOAj-TYsp2g" alt="Cyber-sentinel droid" />
+                <div className="absolute bottom-4 left-4 right-4 bg-primary text-bone p-4 border-charcoal hard-shadow">
+                  <div className="font-label-caps text-xs uppercase">Model: SENTINEL-XOR-V7</div>
+                  <div className="font-bold text-sm">ACTIVE SURVEILLANCE ENABLED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Stats Grid */}
+        <section className="grid grid-cols-2 md:grid-cols-4 divider">
+          <div className="p-margin-page border-r border-charcoal group hover:bg-primary transition-colors">
+            <div className="font-headline-lg text-headline-lg group-hover:text-bone">11.28L</div>
+            <div className="font-label-caps text-xs uppercase opacity-70 group-hover:text-bone">Complaints Logged</div>
+          </div>
+          <div className="p-margin-page border-r border-charcoal group hover:bg-primary transition-colors">
+            <div className="font-headline-lg text-headline-lg group-hover:text-bone">₹7,488Cr</div>
+            <div className="font-label-caps text-xs uppercase opacity-70 group-hover:text-bone">Total Loss (2024)</div>
+          </div>
+          <div className="p-margin-page border-r border-charcoal group hover:bg-primary transition-colors">
+            <div className="font-headline-lg text-headline-lg group-hover:text-bone">47%</div>
+            <div className="font-label-caps text-xs uppercase opacity-70 group-hover:text-bone">Financial Frauds</div>
+          </div>
+          <div className="p-margin-page group hover:bg-primary transition-colors">
+            <div className="font-headline-lg text-headline-lg group-hover:text-bone">1930</div>
+            <div className="font-label-caps text-xs uppercase opacity-70 group-hover:text-bone">Helpline Integration</div>
+          </div>
+        </section>
+        
+        {/* Terminal Analysis Preview */}
+        <section className="bg-charcoal text-bone py-24 px-margin-page relative overflow-hidden">
+          <div className="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+            <div className="lg:col-span-4">
+              <h2 className="font-headline-lg text-headline-lg text-primary mb-6">AI Terminal Sandbox</h2>
+              <p className="font-body-lg text-bone opacity-70 mb-8">
+                Our intelligence engine processes suspicious links and SMS in a secure virtual environment to identify malicious patterns before you click.
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-primary"></span>
+                  <span className="font-label-caps text-xs uppercase">Llama-3 Architecture</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-primary"></span>
+                  <span className="font-label-caps text-xs uppercase">Real-time URL detonation</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-primary"></span>
+                  <span className="font-label-caps text-xs uppercase">Fraud pattern clustering</span>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-8">
+              <div className="border-charcoal border-4 bg-white hard-shadow-lg p-1 overflow-hidden">
+                <div className="bg-charcoal p-4 flex justify-between items-center text-bone font-label-caps text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                    <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                    <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                    <span className="ml-4 uppercase tracking-widest">CYBERSHIELD_AI_TERMINAL v2.4.1</span>
                   </div>
-                  <div>
-                    <div className="testimonial-card__name">{name}</div>
-                    <div className="testimonial-card__role">{role}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="animate-pulse w-2 h-2 bg-green-400 rounded-full"></span>
+                    STATUS: ONLINE
+                  </div>
+                </div>
+                <div className="bg-bone text-charcoal p-8 font-mono text-sm min-h-[400px]">
+                  <div className="mb-6">
+                    <span className="text-primary font-bold">user@input:</span> "Dear SBI Customer, your KYC has expired. Please update immediately at https://sbi-verify-kyc.org to avoid account suspension."
+                  </div>
+                  <div className="space-y-1 text-on-surface-variant">
+                    <div>[SYS] Initializing Llama-3 Analysis Engine... <span className="text-green-600">DONE</span></div>
+                    <div>[URL] Resolving https://sbi-verify-kyc.org...</div>
+                    <div>[URL] IP Origin detected: [REDACTED], Romania.</div>
+                    <div>[SMS] Checking linguistic patterns against known phishing templates...</div>
+                    <div>[SMS] Urgency weight: 9.4/10</div>
+                    <div>[DB] Domain registration: 2 hours ago. <span className="text-primary">WARNING</span></div>
+                    <div className="pt-4 border-t border-charcoal mt-4">
+                      <div className="bg-primary text-bone p-6 border-charcoal hard-shadow inline-block">
+                        <div className="text-3xl font-black mb-1">96% CRITICAL RISK</div>
+                        <div className="font-bold uppercase tracking-tighter">PHISHING ATTEMPT DETECTED</div>
+                        <div className="text-[10px] mt-2 opacity-80">Report ID: CS-9882-KYC | Severity: Critical</div>
+                      </div>
+                      <div className="mt-4 flex gap-4">
+                        <button className="bg-charcoal text-bone px-6 py-2 uppercase font-bold text-xs">REPORT TO CYBER CELL</button>
+                        <button className="border-2 border-charcoal px-6 py-2 uppercase font-bold text-xs">DO NOT CLICK</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+          </div>
+        </section>
+        
+        {/* Feature Matrix */}
+        <section className="py-24 px-margin-page bg-bone">
+          <div className="mb-16">
+            <div className="font-label-caps text-xs text-primary font-bold uppercase mb-2">01 / THE CORE ENGINE</div>
+            <h2 className="font-headline-lg text-headline-lg text-charcoal">Competitive Analysis</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border-charcoal border-2 text-left bg-white">
+              <thead className="bg-charcoal text-bone">
+                <tr>
+                  <th className="p-6 font-label-caps text-sm uppercase">Threat Intelligence</th>
+                  <th className="p-6 font-label-caps text-sm uppercase bg-primary">CyberShield AI</th>
+                  <th className="p-6 font-label-caps text-sm uppercase">Legacy AV</th>
+                  <th className="p-6 font-label-caps text-sm uppercase">Spam Filters</th>
+                </tr>
+              </thead>
+              <tbody className="text-charcoal font-body-md">
+                <tr className="divider">
+                  <td className="p-6 font-bold">Real-Time Threat Analysis</td>
+                  <td className="p-6 bg-primary-container text-on-primary-container font-black">AI-Powered (Llama-3)</td>
+                  <td className="p-6">Signature Based</td>
+                  <td className="p-6">Heuristic Only</td>
+                </tr>
+                <tr className="divider">
+                  <td className="p-6 font-bold">Automated Police-Ready PDF</td>
+                  <td className="p-6 bg-primary-container text-on-primary-container font-black">Instant Generation</td>
+                  <td className="p-6 text-on-surface-variant">—</td>
+                  <td className="p-6 text-on-surface-variant">—</td>
+                </tr>
+                <tr className="divider">
+                  <td className="p-6 font-bold">QR Code &amp; Link Sandboxing</td>
+                  <td className="p-6 bg-primary-container text-on-primary-container font-black">Full Virtual Detonation</td>
+                  <td className="p-6 text-on-surface-variant">URL Check Only</td>
+                  <td className="p-6 text-on-surface-variant">Blacklist Match</td>
+                </tr>
+                <tr>
+                  <td className="p-6 font-bold">Emergency 1930 Connect</td>
+                  <td className="p-6 bg-primary-container text-on-primary-container font-black">Direct API Sync</td>
+                  <td className="p-6 text-on-surface-variant">—</td>
+                  <td className="p-6 text-on-surface-variant">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        
+        {/* System Architecture */}
+        <section className="py-24 px-margin-page divider">
+          <div className="mb-16 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+            <div>
+              <div className="font-label-caps text-xs text-primary font-bold uppercase mb-2">02 / SYSTEM ARCHITECTURE</div>
+              <h2 className="font-headline-lg text-headline-lg text-charcoal max-w-xl">From Suspicion to Action in <span className="italic text-primary">300ms</span></h2>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-black text-charcoal">v4.0.2</div>
+              <div className="font-label-caps text-xs uppercase opacity-60">Stable Kernel</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-charcoal border-2 bg-white">
+            <div className="p-12 border-b md:border-b-0 md:border-r border-charcoal hover:bg-surface-container transition-colors relative group">
+              <div className="text-primary font-black text-6xl mb-8 opacity-20 group-hover:opacity-100 transition-opacity">01</div>
+              <div className="bg-charcoal text-bone px-3 py-1 font-label-caps text-[10px] uppercase inline-block mb-4">Ingestion</div>
+              <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-charcoal mb-4">Intake Hub</h3>
+              <p className="text-on-surface-variant">Upload screenshots, forward SMS, or scan QR codes. Multi-modal inputs are normalized for scanning.</p>
+            </div>
+            <div className="p-12 border-b md:border-b-0 md:border-r border-charcoal hover:bg-surface-container transition-colors group">
+              <div className="text-primary font-black text-6xl mb-8 opacity-20 group-hover:opacity-100 transition-opacity">02</div>
+              <div className="bg-charcoal text-bone px-3 py-1 font-label-caps text-[10px] uppercase inline-block mb-4">Processing</div>
+              <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-charcoal mb-4">Intelligence Engine</h3>
+              <p className="text-on-surface-variant">Llama-3 processes text intent while our Link Detonator executes URLs in a sandboxed OS.</p>
+            </div>
+            <div className="p-12 hover:bg-surface-container transition-colors group">
+              <div className="text-primary font-black text-6xl mb-8 opacity-20 group-hover:opacity-100 transition-opacity">03</div>
+              <div className="bg-charcoal text-bone px-3 py-1 font-label-caps text-[10px] uppercase inline-block mb-4">Reporting</div>
+              <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-charcoal mb-4">Output Generation</h3>
+              <p className="text-on-surface-variant">Receive a detailed risk report and an auto-filled PDF formatted for police reporting.</p>
+            </div>
+          </div>
+        </section>
+        
+        {/* Roadmap (Coming Soon) */}
+        <section className="py-24 px-margin-page bg-surface-container">
+          <h2 className="font-headline-lg text-headline-lg text-charcoal mb-16 text-center italic">Future Roadmap <span className="material-symbols-outlined text-4xl align-middle">upcoming</span></h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            {/* Roadmap Item 1 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">record_voice_over</span>
+                <span className="bg-charcoal text-bone px-2 py-1 text-[10px] uppercase font-bold">Q1 2025</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">Voice Assistant</h4>
+              <p className="text-on-surface-variant text-sm">Real-time analysis of suspicious calls via AI voice-layer interception.</p>
+            </div>
+            {/* Roadmap Item 2 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">phone_callback</span>
+                <span className="bg-charcoal text-bone px-2 py-1 text-[10px] uppercase font-bold">Q2 2025</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">AI Call Analyzer</h4>
+              <p className="text-on-surface-variant text-sm">Advanced sentiment analysis to detect high-pressure scam tactics in live audio.</p>
+            </div>
+            {/* Roadmap Item 3 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">extension</span>
+                <span className="bg-charcoal text-bone px-2 py-1 text-[10px] uppercase font-bold">DEVELOPMENT</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">Browser Extension</h4>
+              <p className="text-on-surface-variant text-sm">Seamless desktop protection for net banking and e-commerce transactions.</p>
+            </div>
+            {/* Roadmap Item 4 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">map</span>
+                <span className="bg-charcoal text-bone px-2 py-1 text-[10px] uppercase font-bold">BETA</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">Fraud Heatmap</h4>
+              <p className="text-on-surface-variant text-sm">Interactive visualization of active regional scam campaigns in India.</p>
+            </div>
+            {/* Roadmap Item 5 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">female</span>
+                <span className="bg-primary text-bone px-2 py-1 text-[10px] uppercase font-bold">PRIORITY</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">Women's Safety Mode</h4>
+              <p className="text-on-surface-variant text-sm">Specialized detection for online harassment and deep-fake extortion attempts.</p>
+            </div>
+            {/* Roadmap Item 6 */}
+            <div className="bg-white border-charcoal border-2 p-8 hard-shadow corner-accent relative group">
+              <div className="flex justify-between items-start mb-6">
+                <span className="material-symbols-outlined text-3xl text-primary">install_mobile</span>
+                <span className="bg-charcoal text-bone px-2 py-1 text-[10px] uppercase font-bold">Q4 2024</span>
+              </div>
+              <h4 className="font-bold text-xl text-charcoal mb-2 uppercase">Fake App Detector</h4>
+              <p className="text-on-surface-variant text-sm">Analyzes APK permissions and code signatures to identify fraudulent banking apps.</p>
+            </div>
+          </div>
+        </section>
+        
+        {/* Testimonials */}
+        <section className="py-24 px-margin-page bg-charcoal text-bone">
+          <h2 className="font-headline-lg text-headline-lg text-primary text-center mb-16">Intelligence Community Feedback</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div className="p-8 border-l-4 border-primary bg-bone/5">
+              <p className="font-body-lg italic mb-6">"The speed at which CyberShield AI generates reporting documentation is a game-changer for our field agents. It bridges the gap between citizens and authorities."</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary"></div>
+                <div>
+                  <div className="font-bold text-sm uppercase">Sub-Inspector R. Sharma</div>
+                  <div className="text-[10px] opacity-60">Cyber Crime Cell, Delhi</div>
+                </div>
+              </div>
+            </div>
+            <div className="p-8 border-l-4 border-primary bg-bone/5">
+              <p className="font-body-lg italic mb-6">"I was about to pay a 'pending electricity bill' through a link. CyberShield identified it as a credential harvester in 2 seconds. Saved me lakhs."</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary"></div>
+                <div>
+                  <div className="font-bold text-sm uppercase">Priya Mehta</div>
+                  <div className="text-[10px] opacity-60">Business Owner</div>
+                </div>
+              </div>
+            </div>
+            <div className="p-8 border-l-4 border-primary bg-bone/5">
+              <p className="font-body-lg italic mb-6">"As a researcher, I find their Llama-3 implementation for contextual fraud detection to be one of the most practical uses of LLMs in cybersecurity today."</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary"></div>
+                <div>
+                  <div className="font-bold text-sm uppercase">Dr. A. Kumar</div>
+                  <div className="text-[10px] opacity-60">AI Ethics &amp; Security Lead</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Final CTA */}
+        <section className="py-stack-lg px-margin-page text-center divider bg-primary text-bone">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="font-headline-xl text-headline-xl mb-8">Received a Suspicious Message?</h2>
+            <p className="font-body-lg mb-12 text-bone/80">Don't second-guess your safety. Let our AI handle the analysis and provide you with a clear, actionable report instantly.</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <Link className="bg-charcoal text-bone px-10 py-5 border-2 border-bone hard-shadow btn-hover font-button-text uppercase text-xl flex items-center justify-center gap-3" to="/analyzer">
+                <span className="material-symbols-outlined">bolt</span>
+                ANALYZE A MESSAGE
+              </Link>
+              <a className="bg-bone text-charcoal px-10 py-5 border-2 border-charcoal hard-shadow btn-hover font-button-text uppercase text-xl flex items-center justify-center gap-3" href="tel:1930">
+                <span className="material-symbols-outlined">call</span>
+                CALL 1930 HELPLINE
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+      
+      {/* Footer */}
+      <footer className="bg-charcoal text-bone py-16 px-margin-page">
+        <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-4 gap-gutter mb-12">
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="material-symbols-outlined text-primary text-3xl">shield</span>
+              <span className="font-headline-lg-mobile text-headline-lg-mobile tracking-tighter text-primary">CYBERSHIELD AI</span>
+            </div>
+            <p className="max-w-sm opacity-60">Building the next generation of sovereign digital defense for 1.4 billion citizens. Powered by advanced AI and human vigilance.</p>
+          </div>
+          <div>
+            <h5 className="font-label-caps text-sm uppercase mb-6 text-primary">Product</h5>
+            <ul className="space-y-4 opacity-70 font-label-caps text-xs">
+              <li><Link className="hover:text-primary transition-colors" to="/analyzer">Scam Analyzer</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/scanner">QR Scanner</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/academy">Cyber Academy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/docs">API Documentation</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-label-caps text-sm uppercase mb-6 text-primary">Resources</h5>
+            <ul className="space-y-4 opacity-70 font-label-caps text-xs">
+              <li><Link className="hover:text-primary transition-colors" to="/privacy">Privacy Policy</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/terms">Terms of Service</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/audit">Security Audit</Link></li>
+              <li><Link className="hover:text-primary transition-colors" to="/support">Contact Support</Link></li>
+            </ul>
           </div>
         </div>
-      </section>
-
-      {/* ── CTA Banner ── */}
-      <section className="cta-banner">
-        <div className="container cta-banner__inner">
-          <div className="cta-banner__glow" />
-          <div className="section-label" style={{ justifyContent: 'center' }}>
-            <Shield size={14} />
-            Get Protected Now
-          </div>
-          <h2>Received a Suspicious Message?</h2>
-          <p style={{ maxWidth: '500px', margin: '16px auto 24px' }}>
-            Don't wait. Paste it into CyberShield AI and know within 5 seconds whether it's a scam — for free.
-          </p>
-          <div className="flex justify-center gap-2" style={{ flexWrap: 'wrap' }}>
-            <Link to="/analyzer" className="btn btn-primary btn-lg">
-              <Zap size={18} />
-              Analyze a Suspicious Message
-            </Link>
-            <a href="tel:1930" className="btn btn-secondary btn-lg">
-              <Phone size={16} />
-              Call 1930 Helpline
-            </a>
+        <div className="pt-8 border-t border-bone/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="font-label-caps text-xs opacity-50">© 2024 CYBERSHIELD AI. SECURE_PROTOCOL_V2.0</div>
+          <div className="flex gap-6 opacity-50 font-label-caps text-xs uppercase">
+            <span>Latency: 312ms</span>
+            <span>Region: AS-SOUTH-1</span>
+            <span>Tier: Sentinel Elite</span>
           </div>
         </div>
-      </section>
+      </footer>
     </div>
   )
 }

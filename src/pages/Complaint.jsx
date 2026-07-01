@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { FileText, User, Phone, Mail, MapPin, Calendar, IndianRupee, Download, Copy, CheckCircle, RotateCcw, ChevronRight } from 'lucide-react'
+import { FileText, User, Phone, Mail, MapPin, Calendar, IndianRupee, Download, Copy, CheckCircle, RotateCcw, ChevronRight, Shield, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generateComplaint } from '../services/gemini'
 import { saveComplaint } from '../services/supabase'
@@ -35,18 +35,39 @@ export default function Complaint() {
     }
   }
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!previewRef.current) return
-    const win = window.open('', '_blank')
-    win.document.write(`<html><head><title>CyberShield AI Complaint</title>
-      <style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#111;line-height:1.7}
-      h1{color:#1a1a2e}h2{color:#333;font-size:1.1rem;border-bottom:1px solid #ddd;padding-bottom:4px}
-      .ref{color:#00796B;font-family:monospace;font-weight:bold}
-      ul{margin:8px 0}p{margin:8px 0}</style></head><body>`)
-    win.document.write(previewRef.current.innerHTML)
-    win.document.write('</body></html>')
-    win.document.close()
-    win.print()
+    const btn = document.getElementById('print-complaint-btn')
+    const originalText = btn.innerHTML
+    btn.innerHTML = '<div class="spinner"></div> Exporting...'
+    btn.disabled = true
+
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0)
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`CyberShield_Complaint_${result.referenceNumber || 'Report'}.pdf`)
+      toast.success('PDF Exported Successfully!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export PDF')
+    } finally {
+      btn.innerHTML = originalText
+      btn.disabled = false
+    }
   }
 
   const copyText = () => {
@@ -92,19 +113,19 @@ export default function Complaint() {
             <div className="form-grid">
               <div className="form-field">
                 <label><User size={13} /> Full Name</label>
-                <input id="victim-name" className="input" placeholder="Your full name" value={form.name} onChange={update('name')} />
+                <input id="victim-name" className="input" placeholder="e.g., John 'Root' Doe" value={form.name} onChange={update('name')} />
               </div>
               <div className="form-field">
                 <label><Phone size={13} /> Phone Number</label>
-                <input id="victim-phone" className="input" placeholder="+91 98765 43210" value={form.phone} onChange={update('phone')} />
+                <input id="victim-phone" className="input" placeholder="e.g., +91 98765 43210 (Your 2FA lifeline)" value={form.phone} onChange={update('phone')} />
               </div>
               <div className="form-field">
                 <label><Mail size={13} /> Email Address</label>
-                <input id="victim-email" className="input" type="email" placeholder="your@email.com" value={form.email} onChange={update('email')} />
+                <input id="victim-email" className="input" type="email" placeholder="dev@null.com" value={form.email} onChange={update('email')} />
               </div>
               <div className="form-field">
                 <label><MapPin size={13} /> City / Location</label>
-                <input id="victim-location" className="input" placeholder="Mumbai, Maharashtra" value={form.location} onChange={update('location')} />
+                <input id="victim-location" className="input" placeholder="e.g., Mumbai (or localhost)" value={form.location} onChange={update('location')} />
               </div>
             </div>
             <div className="complaint-form__footer">
@@ -126,7 +147,7 @@ export default function Complaint() {
               </div>
               <div className="form-field">
                 <label><IndianRupee size={13} /> Financial Loss (if any)</label>
-                <input id="incident-amount" className="input" placeholder="₹25,000 or 'None'" value={form.amount} onChange={update('amount')} />
+                <input id="incident-amount" className="input" placeholder="₹404 (Funds not found)" value={form.amount} onChange={update('amount')} />
               </div>
             </div>
             <div className="form-field" style={{ marginTop: '16px' }}>
@@ -135,7 +156,7 @@ export default function Complaint() {
                 id="incident-description"
                 className="input"
                 rows={6}
-                placeholder="Describe what happened in detail. Include: how contact was made, what was asked, what actions you took, any links clicked or payments made..."
+                placeholder="Spill the tea. How did the threat actor bypass your social engineering firewall? (Include links, payloads, and vector details)"
                 value={form.description}
                 onChange={update('description')}
               />
@@ -146,7 +167,7 @@ export default function Complaint() {
                 id="incident-notes"
                 className="input"
                 rows={3}
-                placeholder="Screenshots taken, phone numbers involved, bank transaction IDs, email addresses..."
+                placeholder="Any stack traces, packet captures, or sketchy IP addresses you snagged."
                 value={form.notes}
                 onChange={update('notes')}
               />
@@ -180,61 +201,173 @@ export default function Complaint() {
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="card complaint-preview" ref={previewRef}>
-              <div className="complaint-preview__letterhead">
-                <div>
-                  <h2 style={{ fontFamily: 'serif', fontSize: '1.4rem', color: '#1a1a2e', margin: 0 }}>CYBERCRIME COMPLAINT REPORT</h2>
-                  <p style={{ fontSize: '0.85rem', color: '#666' }}>Generated via CyberShield AI | Reference: {result.referenceNumber}</p>
+            {/* Preview (Hidden visually, used for PDF export) */}
+            <div style={{ overflow: 'hidden', height: '0' }}>
+              <div ref={previewRef} style={{ width: '900px', backgroundColor: '#ffffff', minHeight: '1272px', display: 'flex', fontFamily: '"Inter", sans-serif', color: '#111' }}>
+                
+                {/* Left Sidebar */}
+                <div style={{ width: '280px', backgroundColor: '#07101e', color: '#fff', padding: '40px 24px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
+                    <div style={{ background: '#00E5FF', padding: '6px', borderRadius: '8px' }}><Shield size={20} color="#07101e" /></div>
+                    <div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>CyberShield AI</div>
+                      <div style={{ fontSize: '0.55rem', opacity: 0.7 }}>Prevent. Detect. Report. Protect.</div>
+                    </div>
+                  </div>
+                  
+                  <h2 style={{ fontSize: '1.3rem', marginBottom: '40px', lineHeight: 1.4, color: '#00E5FF', margin: '0 0 40px 0' }}>CYBER CRIME<br/>COMPLAINT REPORT</h2>
+                  
+                  <div style={{ marginBottom: '30px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#00E5FF', fontWeight: 'bold', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <User size={14} /> REPORT DETAILS
+                    </div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '16px' }}>
+                      <div style={{ marginBottom: '4px' }}>Report ID</div>
+                      <div style={{ opacity: 1, fontWeight: 'bold' }}>{result.referenceNumber || 'CSAI-2026-XX-XXXX'}</div>
+                    </div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '16px' }}>
+                      <div style={{ marginBottom: '4px' }}>Report Date</div>
+                      <div style={{ opacity: 1, fontWeight: 'bold' }}>{new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                    </div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '16px' }}>
+                      <div style={{ marginBottom: '4px' }}>Generated By</div>
+                      <div style={{ opacity: 1, fontWeight: 'bold' }}>CyberShield AI</div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ border: '1px solid rgba(255,255,255,0.15)', padding: '16px', borderRadius: '8px', marginBottom: '30px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{ backgroundColor: '#00E5FF', padding: '6px', borderRadius: '50%' }}>
+                        <Phone size={14} color="#07101e" />
+                      </div>
+                      <div style={{ fontSize: '0.65rem', lineHeight: 1.4 }}>In case of immediate threat or financial fraud call the national cyber crime helpline</div>
+                    </div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', textAlign: 'center', margin: '12px 0' }}>1930</div>
+                    <div style={{ fontSize: '0.65rem', textAlign: 'center' }}>www.cybercrime.gov.in</div>
+                  </div>
+                  
+                  <div style={{ border: '1px solid rgba(255,255,255,0.15)', padding: '16px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '8px' }}>IMPORTANT NOTE</div>
+                    <div style={{ fontSize: '0.6rem', opacity: 0.8, lineHeight: 1.5 }}>
+                      This is an AI generated complaint report based on the information provided by the user. Please cross-verify all details before submission to the authorities.
+                    </div>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#666' }}>
-                  <p>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  <p>To: The Cyber Crime Cell</p>
+
+                {/* Right Content */}
+                <div style={{ flex: 1, padding: '40px 32px', boxSizing: 'border-box' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+                    <div>
+                      <h1 style={{ fontSize: '1.6rem', color: '#111827', margin: '0 0 4px 0', fontWeight: '700' }}>CYBER CRIME COMPLAINT REPORT</h1>
+                      <div style={{ fontSize: '0.85rem', color: '#4B5563' }}>Generated by CyberShield AI</div>
+                    </div>
+                    <div style={{ textAlign: 'center', border: '1px solid #E5E7EB', padding: '6px', borderRadius: '4px' }}>
+                      <div style={{ width: '40px', height: '40px', background: '#000', margin: '0 auto 4px' }}></div>
+                      <div style={{ fontSize: '0.5rem' }}>Scan to Verify</div>
+                    </div>
+                  </div>
+
+                  {/* Two Column details */}
+                  <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
+                    <div style={{ flex: 1, background: '#F9FAFB', borderRadius: '8px', padding: '16px', border: '1px solid #F3F4F6' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                        <User size={14} /> 1. COMPLAINANT DETAILS
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '8px', fontSize: '0.75rem', color: '#4B5563' }}>
+                        <div>Name</div><div style={{ color: '#111827' }}>: {form.name || 'N/A'}</div>
+                        <div>Email</div><div style={{ color: '#111827' }}>: {form.email || 'N/A'}</div>
+                        <div>Mobile</div><div style={{ color: '#111827' }}>: {form.phone || 'N/A'}</div>
+                        <div>Location</div><div style={{ color: '#111827' }}>: {form.location || 'N/A'}</div>
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, background: '#F9FAFB', borderRadius: '8px', padding: '16px', border: '1px solid #F3F4F6' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                        <FileText size={14} /> 2. INCIDENT DETAILS
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '8px', fontSize: '0.75rem', color: '#4B5563' }}>
+                        <div>Incident Date</div><div style={{ color: '#111827' }}>: {form.date || 'N/A'}</div>
+                        <div>Incident Type</div><div style={{ color: '#111827' }}>: {result.incidentType || 'Cyber Fraud'}</div>
+                        <div>Financial Loss</div><div style={{ color: '#111827' }}>: {form.amount || 'None'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                      <FileText size={14} /> 3. INCIDENT DESCRIPTION
+                    </div>
+                    <p style={{ fontSize: '0.8rem', lineHeight: 1.6, color: '#4B5563', margin: 0 }}>
+                      {form.description}
+                    </p>
+                  </div>
+
+                  {/* AI Analysis */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                      <Shield size={14} /> 4. AI ANALYSIS SUMMARY
+                    </div>
+                    <div style={{ display: 'flex', gap: '20px', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px', background: '#fff' }}>
+                      <div style={{ width: '120px', textAlign: 'center', border: '1px solid #EF4444', borderRadius: '8px', padding: '12px 0' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#EF4444', marginBottom: '8px' }}>RISK SCORE</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#EF4444', lineHeight: 1 }}>92<span style={{ fontSize: '1rem', color: '#9CA3AF' }}>/100</span></div>
+                        <div style={{ background: '#EF4444', color: '#fff', fontSize: '0.65rem', fontWeight: 'bold', padding: '4px', marginTop: '12px', borderRadius: '4px', margin: '12px 8px 0' }}>HIGH RISK</div>
+                      </div>
+                      <div style={{ flex: 1, fontSize: '0.75rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', marginBottom: '12px' }}>
+                          <div style={{ color: '#4B5563' }}>Threat Type</div><div style={{ color: '#111827' }}>: {result.incidentType}</div>
+                          <div style={{ color: '#4B5563' }}>Key Indicators</div>
+                          <div style={{ color: '#111827' }}>
+                            <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                              {result.evidencePoints?.slice(0, 4).map((e,i) => <li key={i}>{e}</li>) || <li>Phishing patterns detected</li>}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Formal Complaint */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                      <FileText size={14} /> 5. COMPLAINT SUMMARY (For Submission)
+                    </div>
+                    <div style={{ fontSize: '0.75rem', lineHeight: 1.6, color: '#111827', whiteSpace: 'pre-wrap', background: '#F9FAFB', padding: '16px', borderRadius: '8px', border: '1px solid #F3F4F6' }}>
+                      {result.formalComplaint}
+                    </div>
+                  </div>
+
+                  {/* Declaration */}
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: '#374151' }}>
+                      <CheckCircle size={14} /> 6. DECLARATION
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: '#4B5563', margin: '0 0 24px 0' }}>
+                      I hereby declare that the information provided above is true to the best of my knowledge and belief. I understand that providing false information is punishable under law.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px' }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ borderBottom: '1px solid #9CA3AF', width: '140px', height: '30px' }}></div>
+                        <div style={{ fontSize: '0.7rem', color: '#4B5563', marginTop: '8px' }}>Signature of Complainant</div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ borderBottom: '1px solid #9CA3AF', width: '140px', height: '30px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '4px', fontSize: '0.75rem' }}>
+                          {new Date().toLocaleDateString('en-IN')}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: '#4B5563', marginTop: '8px' }}>Date</div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-
-              <h2 className="complaint-preview__section-title">Subject: {result.title}</h2>
-
-              <div className="complaint-preview__meta">
-                <span><strong>Incident Type:</strong> {result.incidentType}</span>
-                <span><strong>Victim:</strong> {form.name || 'Complainant'}</span>
-                <span><strong>Location:</strong> {form.location || 'India'}</span>
-              </div>
-
-              <h2 className="complaint-preview__section-title">Summary</h2>
-              <p style={{ fontFamily: 'Georgia, serif', lineHeight: 1.8 }}>{result.summary}</p>
-
-              {result.timeline?.length > 0 && (
-                <>
-                  <h2 className="complaint-preview__section-title">Incident Timeline</h2>
-                  <ul>{result.timeline.map((t, i) => <li key={i} style={{ marginBottom: '6px', fontSize: '0.9rem' }}>{t}</li>)}</ul>
-                </>
-              )}
-
-              {result.evidencePoints?.length > 0 && (
-                <>
-                  <h2 className="complaint-preview__section-title">Evidence</h2>
-                  <ul>{result.evidencePoints.map((e, i) => <li key={i} style={{ marginBottom: '6px', fontSize: '0.9rem' }}>{e}</li>)}</ul>
-                </>
-              )}
-
-              <h2 className="complaint-preview__section-title">Formal Complaint</h2>
-              <div className="complaint-preview__formal">{result.formalComplaint}</div>
-
-              {result.nextSteps?.length > 0 && (
-                <>
-                  <h2 className="complaint-preview__section-title">Recommended Next Steps</h2>
-                  <ol style={{ paddingLeft: '20px' }}>{result.nextSteps.map((s, i) => <li key={i} style={{ marginBottom: '6px', fontSize: '0.9rem' }}>{s}</li>)}</ol>
-                </>
-              )}
-
-              <div className="complaint-preview__footer">
-                <p>Report this complaint at: <strong>cybercrime.gov.in</strong> | Helpline: <strong>1930</strong></p>
               </div>
             </div>
 
             <div className="text-center" style={{ marginTop: '24px' }}>
-              <button className="btn btn-ghost" onClick={handleReset}><RotateCcw size={14} /> New Complaint</button>
+              <div className="alert alert-info" style={{ marginBottom: '16px' }}>
+                Your complaint has been successfully generated and formatted for official use. Click "Download / Print" to save the PDF.
+              </div>
+              <button className="btn btn-ghost" onClick={handleReset}><RotateCcw size={14} /> Draft New Complaint</button>
             </div>
           </div>
         )}

@@ -164,6 +164,32 @@ export default function Dashboard() {
             ))}
           </div>
 
+          {/* Heatmap (Coming Soon) */}
+          <div className="card">
+            <div className="chart-title-row">
+              <h3 className="chart-title">Law Enforcement Heatmap</h3>
+              <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>Coming Soon</span>
+            </div>
+            <div style={{
+              background: 'rgba(0,0,0,0.03)',
+              border: '1px dashed var(--border)',
+              borderRadius: '8px',
+              height: '180px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: '16px',
+              textAlign: 'center',
+              padding: '20px'
+            }}>
+              <span style={{ fontSize: '2rem', marginBottom: '8px' }}>🗺️</span>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Geographic visualization of scam hotspots across India for Cyber Crime Cells.
+              </p>
+            </div>
+          </div>
+
           {/* Recent Activity */}
           <div className="card">
             <div className="chart-title-row">

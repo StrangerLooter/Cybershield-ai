@@ -19,17 +19,24 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
-      <Layout>
-        <Routes>
-          <Route path="/"          element={<Home />} />
-          <Route path="/analyzer"  element={<Analyzer />} />
-          <Route path="/scanner"   element={<QRScanner />} />
-          <Route path="/complaint" element={<Complaint />} />
-          <Route path="/academy"   element={<Academy />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/about"     element={<About />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Standalone Landing Page with its own Header/Footer */}
+        <Route path="/" element={<Home />} />
+        
+        {/* Inner pages with common Layout */}
+        <Route path="*" element={
+          <Layout>
+            <Routes>
+              <Route path="/analyzer"  element={<Analyzer />} />
+              <Route path="/scanner"   element={<QRScanner />} />
+              <Route path="/complaint" element={<Complaint />} />
+              <Route path="/academy"   element={<Academy />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/about"     element={<About />} />
+            </Routes>
+          </Layout>
+        } />
+      </Routes>
     </>
   )
 }
